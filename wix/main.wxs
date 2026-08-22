@@ -61,7 +61,7 @@
     <Product
         Id='*'
         Name='crabgrid-gui'
-        UpgradeCode='49CA7A16-2113-4151-B424-6687CE48FD5C'
+        UpgradeCode='CC9E0E96-039E-4954-A97E-16974C8A8D3C'
         Manufacturer='nanashi'
         Language='1033'
         Codepage='1252'
@@ -69,6 +69,7 @@
 
         <Package Id='*'
             Keywords='Installer'
+            Description='A GUI for the crabgrid library.'
             Manufacturer='nanashi'
             InstallerVersion='450'
             Languages='1033'
@@ -102,7 +103,7 @@
                     </Component>
                     
                     <Directory Id='Bin' Name='bin'>
-                        <Component Id='Path' Guid='753F703F-E9BC-4160-8F63-2DC661838ACF' KeyPath='yes'>
+                        <Component Id='Path' Guid='57CB99DA-8A7D-4F24-BE44-2D202FF25CF6' KeyPath='yes'>
                             <Environment
                                 Id='PATH'
                                 Name='PATH'
@@ -164,18 +165,8 @@
         <!--<Icon Id='ProductICO' SourceFile='wix\Product.ico'/>-->
         <!--<Property Id='ARPPRODUCTICON' Value='ProductICO' />-->
 
+        <Property Id='ARPHELPLINK' Value='https://github.com/nanashi-1/crabgrid-gui'/>
         
-        <!--
-          Adding a URL to Add/Remove Programs control panel listing for the
-          application is a two step process:
-
-          1. Uncomment the following `Property` tag with the "ARPHELPLINK" Id
-             attribute value.
-          2. Change the value for `Value` attribute of the following
-             `Property` tag to a valid URL.
-        -->
-        <!--<Property Id='ARPHELPLINK' Value='ChangeMe'/>-->
-
         <UI>
             <UIRef Id='WixUI_FeatureTree'/>
             <!--

@@ -5,6 +5,7 @@ edition = "2024"
 authors = ["nanashi"]
 license = "GPL-3.0"
 description = "A GUI for the crabgrid library."
+repository = "https://github.com/nanashi-1/crabgrid-gui"
 
 [dependencies]
 anyhow = "1.0.104"
