@@ -29,7 +29,7 @@ Since the GUI is built using `eframe` (which uses `egui` and `wgpu`/`glow`), you
 sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
 ```
 
-### Installation & Running
+### Installation
 
 Clone this repository and run the application using Cargo:
 
@@ -38,9 +38,12 @@ Clone this repository and run the application using Cargo:
 git clone https://github.com/nanashi-1/crabgrid-gui.git
 cd crabgrid-gui
 
-# Run the app
-cargo run --release
+cargo install --path .
 ```
+
+### Windows
+
+The Windows installer is in the releases page.
 
 ## How to Use
 
