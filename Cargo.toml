@@ -2,6 +2,9 @@
 name = "crabgrid-gui"
 version = "0.1.0"
 edition = "2024"
+authors = ["nanashi"]
+license = "GPL-3.0"
+description = "A GUI for the crabgrid library."
 
 [dependencies]
 anyhow = "1.0.104"

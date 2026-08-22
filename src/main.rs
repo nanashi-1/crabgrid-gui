@@ -38,11 +38,11 @@ impl Clone for CrabGridApp {
             page: self.page.clone(),
             input: self.input.clone(),
             output: self.output.clone(),
-            is_multi_directory: self.is_multi_directory.clone(),
-            columns: self.columns.clone(),
-            gaps: self.gaps.clone(),
-            width: self.width.clone(),
-            height: self.height.clone(),
+            is_multi_directory: self.is_multi_directory,
+            columns: self.columns,
+            gaps: self.gaps,
+            width: self.width,
+            height: self.height,
             compile_rx: None, // Cannot be cloned
         }
     }
@@ -123,23 +123,22 @@ impl CrabGridApp {
                     std::thread::spawn(move || {
                         if is_multi_directory {
                             compile_groups(
-                                &Path::new(&input),
-                                &Path::new(&output),
+                                Path::new(&input),
+                                Path::new(&output),
                                 Dimensions { width, height },
                                 Columns(columns),
                                 Gaps(gaps),
-                            );
+                            )
+                            .unwrap();
                         } else {
                             compile_images(
-                                &Path::new(&input),
-                                &Path::new(&output),
-                                Dimensions {
-                                    width: width,
-                                    height: height,
-                                },
+                                Path::new(&input),
+                                Path::new(&output),
+                                Dimensions { width, height },
                                 Columns(columns),
                                 Gaps(gaps),
-                            );
+                            )
+                            .unwrap();
                         }
 
                         tx.send(()).unwrap();
@@ -157,12 +156,12 @@ impl CrabGridApp {
             ui.spinner();
             ui.label("Compiling");
 
-            if let Some(rx) = &self.compile_rx {
-                if rx.try_recv().is_ok() {
-                    self.compile_rx = None;
+            if let Some(rx) = &self.compile_rx
+                && rx.try_recv().is_ok()
+            {
+                self.compile_rx = None;
 
-                    self.page = Page::Done;
-                }
+                self.page = Page::Done;
             }
         });
     }
