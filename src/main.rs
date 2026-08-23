@@ -119,9 +119,13 @@ impl CrabGridApp {
         ui.with_layout(
             Layout::bottom_up(egui::Align::Min).with_main_align(egui::Align::Min),
             |ui| {
-                if ui.button("Compile").clicked() {
-                    let (tx, rx) = mpsc::channel();
-
+                if ui
+                    .add_enabled(
+                        !(self.input.is_empty() || self.output.is_empty()),
+                        egui::Button::new("Compile"),
+                    )
+                    .clicked()
+                {
                     let CrabGridApp {
                         input,
                         output,
