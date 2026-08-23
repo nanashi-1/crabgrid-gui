@@ -16,6 +16,13 @@ enum Page {
     Form,
     Compile,
     Done,
+    Error(String),
+}
+
+#[derive(Clone)]
+enum Message {
+    Done,
+    Error(String),
 }
 
 struct CrabGridApp {
@@ -29,7 +36,8 @@ struct CrabGridApp {
     width: u32,
     height: u32,
 
-    compile_rx: Option<mpsc::Receiver<()>>,
+    receiver: Option<mpsc::Receiver<Message>>,
+    sender: mpsc::Sender<Message>,
 }
 
 impl Clone for CrabGridApp {
@@ -43,7 +51,8 @@ impl Clone for CrabGridApp {
             gaps: self.gaps,
             width: self.width,
             height: self.height,
-            compile_rx: None, // Cannot be cloned
+            receiver: None,
+            sender: self.sender.clone(),
         }
     }
 }
@@ -117,34 +126,41 @@ impl CrabGridApp {
                         gaps,
                         width,
                         height,
+                        sender,
                         ..
                     } = self.clone();
 
                     std::thread::spawn(move || {
+                        let mut err = None;
                         if is_multi_directory {
-                            compile_groups(
+                            let _ = compile_groups(
                                 Path::new(&input),
                                 Path::new(&output),
                                 Dimensions { width, height },
                                 Columns(columns),
                                 Gaps(gaps),
                             )
-                            .unwrap();
+                            .inspect_err(|e| err = Some(e.to_string()));
                         } else {
-                            compile_images(
+                            let _ = compile_images(
                                 Path::new(&input),
                                 Path::new(&output),
                                 Dimensions { width, height },
                                 Columns(columns),
                                 Gaps(gaps),
                             )
-                            .unwrap();
+                            .inspect_err(|e| err = Some(e.to_string()));
                         }
 
-                        tx.send(()).unwrap();
+                        if let Some(err) = err {
+                            sender.send(Message::Error(err)).unwrap();
+
+                            return;
+                        }
+
+                        sender.send(Message::Done).unwrap();
                     });
 
-                    self.compile_rx = Some(rx);
                     self.page = Page::Compile;
                 }
             },
@@ -155,14 +171,6 @@ impl CrabGridApp {
         ui.horizontal(|ui| {
             ui.spinner();
             ui.label("Compiling");
-
-            if let Some(rx) = &self.compile_rx
-                && rx.try_recv().is_ok()
-            {
-                self.compile_rx = None;
-
-                self.page = Page::Done;
-            }
         });
     }
 
@@ -181,10 +189,30 @@ impl CrabGridApp {
             });
         });
     }
+
+    fn error_page(&mut self, ui: &mut eframe::egui::Ui, err: &str) {
+        ui.label("An error has occurred");
+
+        ui.weak(err);
+
+        ui.with_layout(Layout::bottom_up(egui::Align::Min), |ui| {
+            ui.horizontal(|ui| {
+                if ui.button("Back").clicked() {
+                    self.page = Page::Form;
+                }
+
+                if ui.button("Exit").clicked() {
+                    ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+                }
+            });
+        });
+    }
 }
 
 impl Default for CrabGridApp {
     fn default() -> Self {
+        let (sender, receiver) = mpsc::channel();
+
         Self {
             columns: 5,
             gaps: 2,
@@ -194,7 +222,8 @@ impl Default for CrabGridApp {
             input: String::default(),
             output: String::default(),
             is_multi_directory: false,
-            compile_rx: None,
+            receiver: Some(receiver),
+            sender,
         }
     }
 }
@@ -204,11 +233,21 @@ impl App for CrabGridApp {
         ui.ctx().set_theme(egui::Theme::Light);
         ui.ctx().set_pixels_per_point(1.4);
 
-        egui::CentralPanel::default().show(ui, |ui| match self.page {
+        egui::CentralPanel::default().show(ui, |ui| match self.page.clone() {
             Page::Form => self.form_page(ui),
             Page::Compile => self.compile_page(ui),
             Page::Done => self.done_page(ui),
+            Page::Error(err) => self.error_page(ui, &err),
         });
+
+        if let Some(ref receiver) = self.receiver
+            && let Ok(message) = receiver.try_recv()
+        {
+            match message {
+                Message::Done => self.page = Page::Done,
+                Message::Error(err) => self.page = Page::Error(err),
+            }
+        }
     }
 }
 
