@@ -80,9 +80,13 @@ impl CrabGridApp {
                 let output = if self.is_multi_directory {
                     FileDialog::new().pick_folder()
                 } else {
-                    FileDialog::new()
-                        .add_filter("Image", &["jpg", "jpeg", "png", "webp"])
-                        .save_file()
+                    let o = FileDialog::new().save_file();
+
+                    if let Some(o) = o {
+                        Some(o.with_extension("jpg"))
+                    } else {
+                        None
+                    }
                 };
 
                 if let Some(output) = output {
