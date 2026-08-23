@@ -92,4 +92,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag_name }}
-          files: "*.AppImage"
+          files: "target/appimage/*.AppImage"
