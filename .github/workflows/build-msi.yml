@@ -1,0 +1,90 @@
+name: Build & Upload MSI to Specific Release (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'The exact git tag of the release (e.g., v1.2.3)'
+        required: true
+        type: string
+      build_type:
+        description: 'Build profile'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+        - release
+        - debug
+
+permissions:
+  contents: write  # Crucial: Allows GitHub Actions to upload files to Releases
+
+jobs:
+  build-and-upload-msi:
+    name: Build MSI and Inject to Release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install Stable Rust Toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: x86_64-pc-windows-msvc
+
+    - name: Set up Cargo Cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-wix-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Install Wine & Dependencies
+      run: |
+        sudo dpkg --add-architecture i386
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends wine64 wine32
+
+    - name: Download and Set Up WiX Toolset v3 Binaries
+      run: |
+        mkdir -p $HOME/.local/share/wixbinst
+        cd $HOME/.local/share/wixbinst
+        curl -L -O https://github.com
+        unzip -q wix311-binaries.zip
+        rm wix311-binaries.zip
+
+    - name: Create WiX Interceptor Wrappers (.exe spoofing)
+      run: |
+        echo '#!/bin/bash' | sudo tee /usr/local/bin/candle.exe
+        echo 'wine '"$HOME"'/.local/share/wixbinst/candle.exe "$@"' | sudo tee -a /usr/local/bin/candle.exe
+        
+        echo '#!/bin/bash' | sudo tee /usr/local/bin/light.exe
+        echo 'wine '"$HOME"'/.local/share/wixbinst/light.exe "$@"' | sudo tee -a /usr/local/bin/light.exe
+        
+        sudo chmod +x /usr/local/bin/candle.exe
+        sudo chmod +x /usr/local/bin/light.exe
+
+    - name: Install cargo-wix
+      run: |
+        if ! command -v cargo-wix &> /dev/null; then
+          cargo install cargo-wix
+        fi
+
+    - name: Build MSI Installer
+      run: |
+        WIX_FLAGS="--target x86_64-pc-windows-msvc"
+        if [ "${{ github.event.inputs.build_type }}" = "debug" ]; then
+          WIX_FLAGS="$WIX_FLAGS --no-release"
+        fi
+        DISPLAY=:0 cargo wix $WIX_FLAGS
+
+    - name: Upload MSI to Existing GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.event.inputs.release_tag }}
+        files: target/wix/*.msi
