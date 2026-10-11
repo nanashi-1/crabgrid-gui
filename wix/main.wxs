@@ -117,7 +117,7 @@
                                 Action='set'
                                 System='yes'/>
                         </Component>
-                        <Component Id='binary0' Guid='*'>
+                        <Component Id='binary0' Guid='713cfca2-af0e-414e-ae9a-c5f04e10ec28'>
                             <File
                                 Id='exe0'
                                 Name='crabgrid-gui.exe'
