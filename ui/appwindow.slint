@@ -1,0 +1,195 @@
+import { Palette } from "std-widgets.slint";
+import { FormPage } from "form_page.slint";
+import { LoadingPage } from "loading_page.slint";
+import { EditPage, ImageItem } from "edit_page.slint";
+import { CompilingPage } from "compiling_page.slint";
+import { DonePage } from "done_page.slint";
+import { ErrorPage } from "error_page.slint";
+
+export enum AppState {
+    Form,
+    Loading,
+    EditGrid,
+    Compiling,
+    Done,
+    Error,
+}
+
+export { ImageItem }
+
+export component MainWindow inherits Window {
+    title: "CrabGrid";
+    icon: @image-url("../icon.png");
+    min-width: 680px;
+    min-height: 560px;
+    preferred-width: 740px;
+    preferred-height: 620px;
+    background: Palette.background;
+
+    in-out property <AppState> current-page: AppState.Form;
+    in-out property <string> input-path: "";
+    in-out property <string> output-path: "";
+    in-out property <bool> is-multi-directory: false;
+    in-out property <int> columns: 5;
+    in-out property <int> gaps: 2;
+    in-out property <int> tile-width: 300;
+    in-out property <int> tile-height: 300;
+    in-out property <string> error-message: "";
+    in-out property <string> loading-text: "Scanning directory and preparing images, please wait...";
+
+    // Edit Grid Properties
+    in-out property <[ImageItem]> images: [];
+    in-out property <int> total-images: 0;
+    in-out property <int> total-rows: 1;
+    in-out property <int> selected-index: -1;
+    in-out property <string> selected-image-name: "";
+    in-out property <bool> persist-changes: false;
+    in-out property <string> persist-status: "";
+    in-out property <bool> has-multiple-folders: false;
+    in-out property <string> folder-name: "";
+    in-out property <int> folder-index: 0;
+    in-out property <int> total-folders: 1;
+
+    in-out property <length> tile-card-width: 120px;
+    in-out property <length> tile-card-height: 145px;
+    in-out property <length> tile-gap: 8px;
+    in-out property <length> grid-canvas-width: 600px;
+    in-out property <length> grid-canvas-height: 400px;
+
+    // Callbacks
+    callback browse-input();
+    callback browse-output();
+    callback proceed-to-edit();
+
+    callback select-image(int);
+    callback deselect();
+    callback rotate-image(int, int);
+    callback move-image(int, int);
+    callback move-to-start(int);
+    callback move-to-end(int);
+    callback rotate-all(int);
+    callback reset-images();
+    callback persist-changes-now();
+    callback prev-folder();
+    callback next-folder();
+    callback back-to-form();
+    callback start-compiling();
+
+    callback reset();
+    callback open-output();
+    callback close-app();
+
+    VerticalLayout {
+        padding-left: 16px;
+        padding-right: 16px;
+        padding-top: 14px;
+        padding-bottom: 14px;
+        spacing: 12px;
+
+        // Header / App Bar
+        HorizontalLayout {
+            spacing: 12px;
+            alignment: start;
+
+            Rectangle {
+                width: 36px;
+                height: 36px;
+                border-radius: 6px;
+                clip: true;
+
+                Image {
+                    source: @image-url("../icon.png");
+                    width: 36px;
+                    height: 36px;
+                }
+            }
+
+            VerticalLayout {
+                alignment: center;
+                spacing: 2px;
+
+                Text {
+                    text: "CrabGrid";
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: Palette.foreground;
+                }
+
+                Text {
+                    text: "Image Grid Collage Generator";
+                    font-size: 11px;
+                    color: Palette.foreground.transparentize(0.35);
+                }
+            }
+        }
+
+        // Main Content Area Pages
+        if root.current-page == AppState.Form : FormPage {
+            input-path <=> root.input-path;
+            output-path <=> root.output-path;
+            is-multi-directory <=> root.is-multi-directory;
+            columns <=> root.columns;
+            gaps <=> root.gaps;
+            tile-width <=> root.tile-width;
+            tile-height <=> root.tile-height;
+
+            browse-input => { root.browse-input(); }
+            browse-output => { root.browse-output(); }
+            proceed-to-edit => { root.proceed-to-edit(); }
+        }
+
+        if root.current-page == AppState.Loading : LoadingPage {
+            loading-text: root.loading-text;
+        }
+
+        if root.current-page == AppState.EditGrid : EditPage {
+            images: root.images;
+            total-images: root.total-images;
+            columns: root.columns;
+            total-rows: root.total-rows;
+            selected-index: root.selected-index;
+            selected-image-name: root.selected-image-name;
+            persist-changes <=> root.persist-changes;
+            persist-status: root.persist-status;
+            has-multiple-folders: root.has-multiple-folders;
+            folder-name: root.folder-name;
+            folder-index: root.folder-index;
+            total-folders: root.total-folders;
+
+            tile-card-width: root.tile-card-width;
+            tile-card-height: root.tile-card-height;
+            tile-gap: root.tile-gap;
+            grid-canvas-width: root.grid-canvas-width;
+            grid-canvas-height: root.grid-canvas-height;
+
+            select-image(idx) => { root.select-image(idx); }
+            deselect => { root.deselect(); }
+            rotate-image(idx, deg) => { root.rotate-image(idx, deg); }
+            move-image(idx, delta) => { root.move-image(idx, delta); }
+            move-to-start(idx) => { root.move-to-start(idx); }
+            move-to-end(idx) => { root.move-to-end(idx); }
+            rotate-all(deg) => { root.rotate-all(deg); }
+            reset-images => { root.reset-images(); }
+            persist-changes-now => { root.persist-changes-now(); }
+            prev-folder => { root.prev-folder(); }
+            next-folder => { root.next-folder(); }
+            back-to-form => { root.back-to-form(); }
+            start-compiling => { root.start-compiling(); }
+        }
+
+        if root.current-page == AppState.Compiling : CompilingPage {}
+
+        if root.current-page == AppState.Done : DonePage {
+            output-path: root.output-path;
+            open-output => { root.open-output(); }
+            reset => { root.reset(); }
+            close-app => { root.close-app(); }
+        }
+
+        if root.current-page == AppState.Error : ErrorPage {
+            error-message: root.error-message;
+            reset => { root.reset(); }
+            close-app => { root.close-app(); }
+        }
+    }
+}

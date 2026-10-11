@@ -1,0 +1,262 @@
+import { Button, LineEdit, CheckBox, SpinBox, Palette, ScrollView } from "std-widgets.slint";
+import { Card } from "card.slint";
+
+export component FormPage inherits VerticalLayout {
+    in-out property <string> input-path: "";
+    in-out property <string> output-path: "";
+    in-out property <bool> is-multi-directory: false;
+    in-out property <int> columns: 5;
+    in-out property <int> gaps: 2;
+    in-out property <int> tile-width: 300;
+    in-out property <int> tile-height: 300;
+
+    callback browse-input();
+    callback browse-output();
+    callback proceed-to-edit();
+
+    spacing: 14px;
+
+    ScrollView {
+        vertical-stretch: 1;
+
+        VerticalLayout {
+            spacing: 14px;
+            padding-right: 6px;
+
+            // Source & Destination Card
+            Card {
+                VerticalLayout {
+                    padding: 16px;
+                    spacing: 12px;
+
+                    Text {
+                        text: "Files & Directories";
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: Palette.foreground;
+                    }
+
+                    // Input Path Row
+                    VerticalLayout {
+                        spacing: 4px;
+
+                        Text {
+                            text: "Input Directory:";
+                            font-size: 12px;
+                            font-weight: 500;
+                            color: Palette.foreground;
+                        }
+
+                        HorizontalLayout {
+                            spacing: 8px;
+
+                            LineEdit {
+                                horizontal-stretch: 1;
+                                placeholder-text: "Select directory containing images...";
+                                text <=> root.input-path;
+                            }
+
+                            Button {
+                                text: "Browse...";
+                                clicked => { root.browse-input(); }
+                            }
+                        }
+                    }
+
+                    // Output Path Row
+                    VerticalLayout {
+                        spacing: 4px;
+
+                        Text {
+                            text: root.is-multi-directory ? "Output Directory:" : "Output File (JPEG):";
+                            font-size: 12px;
+                            font-weight: 500;
+                            color: Palette.foreground;
+                        }
+
+                        HorizontalLayout {
+                            spacing: 8px;
+
+                            LineEdit {
+                                horizontal-stretch: 1;
+                                placeholder-text: root.is-multi-directory ? "Select directory to save collages..." : "Select output image path (e.g. collage.jpg)...";
+                                text <=> root.output-path;
+                            }
+
+                            Button {
+                                text: "Browse...";
+                                clicked => { root.browse-output(); }
+                            }
+                        }
+                    }
+
+                    // Multi-directory Mode Option
+                    VerticalLayout {
+                        spacing: 2px;
+                        padding-top: 4px;
+
+                        CheckBox {
+                            text: "Multi-directory mode";
+                            checked <=> root.is-multi-directory;
+                        }
+
+                        Text {
+                            text: "When enabled, processes each subfolder separately and outputs an individual collage for each.";
+                            font-size: 11px;
+                            color: Palette.foreground.transparentize(0.4);
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+            }
+
+            // Grid Layout & Dimensions Card
+            Card {
+                VerticalLayout {
+                    padding: 16px;
+                    spacing: 12px;
+
+                    Text {
+                        text: "Grid Layout & Dimensions";
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: Palette.foreground;
+                    }
+
+                    GridLayout {
+                        spacing: 14px;
+
+                        // Row 0, Column 0: Columns
+                        Row {
+                            VerticalLayout {
+                                spacing: 4px;
+
+                                Text {
+                                    text: "Columns:";
+                                    font-size: 12px;
+                                    font-weight: 500;
+                                    color: Palette.foreground;
+                                }
+
+                                SpinBox {
+                                    minimum: 1;
+                                    maximum: 100;
+                                    value <=> root.columns;
+                                }
+
+                                Text {
+                                    text: "Images per grid row";
+                                    font-size: 11px;
+                                    color: Palette.foreground.transparentize(0.4);
+                                }
+                            }
+
+                            // Row 0, Column 1: Gap
+                            VerticalLayout {
+                                spacing: 4px;
+
+                                Text {
+                                    text: "Gap (pixels):";
+                                    font-size: 12px;
+                                    font-weight: 500;
+                                    color: Palette.foreground;
+                                }
+
+                                SpinBox {
+                                    minimum: 0;
+                                    maximum: 500;
+                                    value <=> root.gaps;
+                                }
+
+                                Text {
+                                    text: "Spacing between tiles";
+                                    font-size: 11px;
+                                    color: Palette.foreground.transparentize(0.4);
+                                }
+                            }
+                        }
+
+                        // Row 1, Column 0: Tile Width
+                        Row {
+                            VerticalLayout {
+                                spacing: 4px;
+
+                                Text {
+                                    text: "Tile Width (px):";
+                                    font-size: 12px;
+                                    font-weight: 500;
+                                    color: Palette.foreground;
+                                }
+
+                                SpinBox {
+                                    minimum: 10;
+                                    maximum: 8192;
+                                    step-size: 10;
+                                    value <=> root.tile-width;
+                                }
+
+                                Text {
+                                    text: "Width of each resized image";
+                                    font-size: 11px;
+                                    color: Palette.foreground.transparentize(0.4);
+                                }
+                            }
+
+                            // Row 1, Column 1: Tile Height
+                            VerticalLayout {
+                                spacing: 4px;
+
+                                Text {
+                                    text: "Tile Height (px):";
+                                    font-size: 12px;
+                                    font-weight: 500;
+                                    color: Palette.foreground;
+                                }
+
+                                SpinBox {
+                                    minimum: 10;
+                                    maximum: 8192;
+                                    step-size: 10;
+                                    value <=> root.tile-height;
+                                }
+
+                                Text {
+                                    text: "Height of each resized image";
+                                    font-size: 11px;
+                                    color: Palette.foreground.transparentize(0.4);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Bottom Action Bar
+    HorizontalLayout {
+        alignment: space-between;
+
+        VerticalLayout {
+            alignment: center;
+
+            Text {
+                text: (root.input-path == "" || root.output-path == "")
+                    ? "Please choose input and output locations to continue."
+                    : "Ready to preview and edit grid.";
+                font-size: 12px;
+                color: (root.input-path == "" || root.output-path == "")
+                    ? Palette.foreground.transparentize(0.45)
+                    : Palette.accent-background;
+                font-italic: (root.input-path == "" || root.output-path == "");
+            }
+        }
+
+        Button {
+            text: "Next: Edit Grid";
+            primary: true;
+            enabled: root.input-path != "" && root.output-path != "";
+            clicked => { root.proceed-to-edit(); }
+        }
+    }
+}

@@ -1,0 +1,40 @@
+import { Spinner, ProgressIndicator, Palette } from "std-widgets.slint";
+import { Card } from "card.slint";
+
+export component CompilingPage inherits VerticalLayout {
+    alignment: center;
+    vertical-stretch: 1;
+
+    Card {
+        VerticalLayout {
+            padding: 36px;
+            spacing: 20px;
+            alignment: center;
+
+            VerticalLayout {
+                alignment: center;
+                spacing: 6px;
+
+                Text {
+                    text: "Compiling Collage...";
+                    font-size: 18px;
+                    font-weight: 600;
+                    horizontal-alignment: center;
+                    color: Palette.foreground;
+                }
+
+                Text {
+                    text: "Processing and stitching images, please wait...";
+                    font-size: 13px;
+                    horizontal-alignment: center;
+                    color: Palette.foreground.transparentize(0.35);
+                }
+            }
+
+            ProgressIndicator {
+                indeterminate: true;
+                width: 100%;
+            }
+        }
+    }
+}
