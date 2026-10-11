@@ -50,7 +50,7 @@
   destination for 32-bit versus 64-bit installers. Removal of these lines will
   cause installation errors.
 -->
-<?if $(sys.BUILDARCH) = x64 or $(sys.BUILDARCH) = arm64 ?>
+<?if $(sys.BUILDARCH) = x64 or$(sys.BUILDARCH) = arm64 ?>
     <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
 <?else ?>
     <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
@@ -93,11 +93,11 @@
             <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
                 <Directory Id='APPLICATIONFOLDER' Name='crabgrid-gui'>
                     <!--
-                      Disabling the license sidecar file in the installer is a two step process:
+                        Disabling the license sidecar file in the installer is a two step process:
 
-                      1. Comment out or remove the `Component` tag along with its contents.
-                      2. Comment out or remove the `ComponentRef` tag with the "License" Id
-                         attribute value further down in this file.
+                        1. Comment out or remove the `Component` tag along with its contents.
+                        2. Comment out or remove the `ComponentRef` tag with the "License" Id
+                           attribute value further down in this file.
                     -->
                     <Component Id='License' Guid='*'>
                         <File Id='LicenseFile'
@@ -117,6 +117,7 @@
                                 Action='set'
                                 System='yes'/>
                         </Component>
+                        
                         <Component Id='binary0' Guid='*'>
                             <File
                                 Id='exe0'
@@ -124,50 +125,50 @@
                                 DiskId='1'
                                 Source='$(var.CargoTargetBinDir)\crabgrid-gui.exe'
                                 KeyPath='yes'/>
+
+                            <!-- Start Menu Shortcut -->
+                            <Shortcut
+                                Id='ApplicationMenuShortcut'
+                                Directory='ApplicationProgramsFolder'
+                                Name='CrabGrid'
+                                Description='A GUI for the crabgrid library.'
+                                Target='[#exe0]'
+                                WorkingDirectory='Bin'
+                                Icon='ProductICO'/>
+
+                            <RemoveFolder Id='CleanUpProgramsFolder' Directory='ApplicationProgramsFolder' On='uninstall'/>
+                            
+                            <RegistryValue
+                                Root='HKCU'
+                                Key='Software\nanashi\crabgrid-gui'
+                                Name='Installed'
+                                Type='integer'
+                                Value='1'/>
+                        </Component>
+
+                        <Component Id='ApplicationShortcutDesktop' Guid='9B3E2D87-5D4C-4E7F-99F1-2B7A5D8F0C1E'>
+                            <!-- Desktop Shortcut -->
+                            <Shortcut
+                                Id='ApplicationDesktopShortcut'
+                                Directory='DesktopFolder'
+                                Name='CrabGrid'
+                                Description='A GUI for the crabgrid library.'
+                                Target='[#exe0]'
+                                WorkingDirectory='Bin'
+                                Icon='ProductICO'/>
+
+                            <RegistryValue
+                                Root='HKCU'
+                                Key='Software\nanashi\crabgrid-gui'
+                                Name='DesktopShortcut'
+                                Type='integer'
+                                Value='1'
+                                KeyPath='yes'/>
                         </Component>
                     </Directory>
                 </Directory>
             </Directory>
         </Directory>
-
-        <DirectoryRef Id='DesktopFolder'>
-            <Component Id='ApplicationShortcutDesktop' Guid='9B3E2D87-5D4C-4E7F-99F1-2B7A5D8F0C1E'>
-                <Shortcut
-                    Id='ApplicationDesktopShortcut'
-                    Name='CrabGrid'
-                    Description='A GUI for the crabgrid library.'
-                    Target='[#exe0]'
-                    WorkingDirectory='Bin'
-                    Icon='ProductICO'/>
-                <RegistryValue
-                    Root='HKCU'
-                    Key='Software\nanashi\crabgrid-gui'
-                    Name='DesktopShortcut'
-                    Type='integer'
-                    Value='1'
-                    KeyPath='yes'/>
-            </Component>
-        </DirectoryRef>
-
-        <DirectoryRef Id='ApplicationProgramsFolder'>
-            <Component Id='ApplicationShortcutMenu' Guid='E8C1236F-A054-4B2E-8E56-427DFF6C0B83'>
-                <Shortcut
-                    Id='ApplicationMenuShortcut'
-                    Name='CrabGrid'
-                    Description='A GUI for the crabgrid library.'
-                    Target='[#exe0]'
-                    WorkingDirectory='Bin'
-                    Icon='ProductICO'/>
-                <RemoveFolder Id='CleanUpProgramsFolder' On='uninstall'/>
-                <RegistryValue
-                    Root='HKCU'
-                    Key='Software\nanashi\crabgrid-gui'
-                    Name='MenuShortcut'
-                    Type='integer'
-                    Value='1'
-                    KeyPath='yes'/>
-            </Component>
-        </DirectoryRef>
 
         <Feature
             Id='Binaries'
@@ -185,8 +186,6 @@
             <ComponentRef Id='License'/>
             
             <ComponentRef Id='binary0'/>
-
-            <ComponentRef Id='ApplicationShortcutMenu'/>
 
             <Feature
                 Id='DesktopShortcutFeature'
@@ -223,8 +222,8 @@
             <!--
               Disabling the EULA dialog in the installer is a two step process:
 
-                 1. Uncomment the following two `Publish` tags
-                 2. Comment out or remove the `<WiXVariable Id='WixUILicenseRtf'...` tag further down
+               1. Uncomment the following two `Publish` tags
+               2. Comment out or remove the `<WiXVariable Id='WixUILicenseRtf'...` tag further down
 
             -->
             <!--<Publish Dialog='WelcomeDlg' Control='Next' Event='NewDialog' Value='CustomizeDlg' Order='99'>1</Publish>-->
