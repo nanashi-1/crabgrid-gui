@@ -61,7 +61,7 @@
     <Product
         Id='*'
         Name='crabgrid-gui'
-        UpgradeCode='CC9E0E96-039E-4954-A97E-16974C8A8D3C'
+        UpgradeCode='835B3353-FD1B-4FDB-8022-A67E187DD13E'
         Manufacturer='nanashi'
         Language='1033'
         Codepage='1252'
@@ -86,18 +86,14 @@
         <Property Id='DiskPrompt' Value='crabgrid-gui Installation'/>
 
         <Directory Id='TARGETDIR' Name='SourceDir'>
-            <Directory Id='DesktopFolder' Name='Desktop'/>
-            <Directory Id='ProgramMenuFolder'>
-                <Directory Id='ApplicationProgramsFolder' Name='CrabGrid'/>
-            </Directory>
             <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
                 <Directory Id='APPLICATIONFOLDER' Name='crabgrid-gui'>
                     <!--
-                        Disabling the license sidecar file in the installer is a two step process:
+                      Disabling the license sidecar file in the installer is a two step process:
 
-                        1. Comment out or remove the `Component` tag along with its contents.
-                        2. Comment out or remove the `ComponentRef` tag with the "License" Id
-                           attribute value further down in this file.
+                      1. Comment out or remove the `Component` tag along with its contents.
+                      2. Comment out or remove the `ComponentRef` tag with the "License" Id
+                         attribute value further down in this file.
                     -->
                     <Component Id='License' Guid='*'>
                         <File Id='LicenseFile'
@@ -107,7 +103,7 @@
                     </Component>
                     
                     <Directory Id='Bin' Name='bin'>
-                        <Component Id='Path' Guid='57CB99DA-8A7D-4F24-BE44-2D202FF25CF6' KeyPath='yes'>
+                        <Component Id='Path' Guid='AD58DBF9-59B9-42EE-9ECE-7C9337FDDE38' KeyPath='yes'>
                             <Environment
                                 Id='PATH'
                                 Name='PATH'
@@ -117,40 +113,18 @@
                                 Action='set'
                                 System='yes'/>
                         </Component>
-
-                        <Component Id='binary0' Guid='713cfca2-af0e-414e-ae9a-c5f04e10ec28'>
+                        <Component Id='binary0' Guid='*'>
                             <File
                                 Id='exe0'
                                 Name='crabgrid-gui.exe'
                                 DiskId='1'
                                 Source='$(var.CargoTargetBinDir)\crabgrid-gui.exe'
                                 KeyPath='yes'/>
-
-                            <!-- Start Menu Shortcut -->
-                            <Shortcut
-                                Id='ApplicationMenuShortcut'
-                                Directory='ApplicationProgramsFolder'
-                                Name='CrabGrid'
-                                Description='A GUI for the crabgrid library.'
-                                Target='[#exe0]'
-                                WorkingDirectory='Bin'
-                                Icon='ProductICO'/>
-
-                            <!-- Desktop Shortcut (placed in the same component as exe0 to satisfy ICE69) -->
-                            <Shortcut
-                                Id='ApplicationDesktopShortcut'
-                                Directory='DesktopFolder'
-                                Name='CrabGrid'
-                                Description='A GUI for the crabgrid library.'
-                                Target='[#exe0]'
-                                WorkingDirectory='Bin'
-                                Icon='ProductICO'/>
-
-                            <RemoveFolder Id='CleanUpProgramsFolder' Directory='ApplicationProgramsFolder' On='uninstall'/>
-                        </Component>                        
+                        </Component>
                     </Directory>
                 </Directory>
             </Directory>
+            <Directory Id="DesktopFolder" Name="Desktop" />
         </Directory>
 
         <Feature
@@ -170,6 +144,8 @@
             
             <ComponentRef Id='binary0'/>
 
+            <ComponentRef Id="ApplicationShortcutDesktop" />
+
             <Feature
                 Id='Environment'
                 Title='PATH Environment Variable'
@@ -181,13 +157,15 @@
         </Feature>
 
         <SetProperty Id='ARPINSTALLLOCATION' Value='[APPLICATIONFOLDER]' After='CostFinalize'/>
-
         
         <!--
-          Product icon that appears in Add/Remove Programs and shortcuts.
+          Uncomment the following `Icon` and `Property` tags to change the product icon.
+
+          The product icon is the graphic that appears in the Add/Remove
+          Programs control panel for the application.
         -->
-        <Icon Id='ProductICO' SourceFile='wix\Product.ico'/>
-        <Property Id='ARPPRODUCTICON' Value='ProductICO' />
+        <!--<Icon Id='ProductICO' SourceFile='wix\Product.ico'/>-->
+        <!--<Property Id='ARPPRODUCTICON' Value='ProductICO' />-->
 
         <Property Id='ARPHELPLINK' Value='https://github.com/nanashi-1/crabgrid-gui'/>
         
@@ -196,8 +174,8 @@
             <!--
               Disabling the EULA dialog in the installer is a two step process:
 
-               1. Uncomment the following two `Publish` tags
-               2. Comment out or remove the `<WiXVariable Id='WixUILicenseRtf'...` tag further down
+                 1. Uncomment the following two `Publish` tags
+                 2. Comment out or remove the `<WiXVariable Id='WixUILicenseRtf'...` tag further down
 
             -->
             <!--<Publish Dialog='WelcomeDlg' Control='Next' Event='NewDialog' Value='CustomizeDlg' Order='99'>1</Publish>-->
@@ -233,6 +211,23 @@
         -->
         <!--<WixVariable Id='WixUIDialogBmp' Value='wix\Dialog.bmp'/>-->
 
+        <Icon Id="MyIcon" SourceFile="wix/Product.ico" />
     </Product>
 
+    <DirectoryRef Id="DesktopFolder">
+      <Component Id="ApplicationShortcutDesktop" Guid="305dc292-f9af-4961-9fd1-bf38f5ad08db">
+          <Shortcut Id="ApplicationDesktopShortcut" 
+              Name="CrabGrid" 
+              Description="A GUI for the crabgrid library" 
+              Target="[Bin]crabgrid-gui.exe" 
+              Icon="MyIcon"
+              WorkingDirectory="Bin" />
+          <RegistryValue Root="HKCU"
+              Key="Software\nanashi\crabgrid-gui"
+              Name="installed"
+              Type="integer"
+              Value="1"
+              KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
 </Wix>
