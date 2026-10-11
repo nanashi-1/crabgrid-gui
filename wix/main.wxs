@@ -86,6 +86,10 @@
         <Property Id='DiskPrompt' Value='crabgrid-gui Installation'/>
 
         <Directory Id='TARGETDIR' Name='SourceDir'>
+            <Directory Id='DesktopFolder' Name='Desktop'/>
+            <Directory Id='ProgramMenuFolder'>
+                <Directory Id='ApplicationProgramsFolder' Name='CrabGrid'/>
+            </Directory>
             <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
                 <Directory Id='APPLICATIONFOLDER' Name='crabgrid-gui'>
                     <!--
@@ -126,6 +130,45 @@
             </Directory>
         </Directory>
 
+        <DirectoryRef Id='DesktopFolder'>
+            <Component Id='ApplicationShortcutDesktop' Guid='9B3E2D87-5D4C-4E7F-99F1-2B7A5D8F0C1E'>
+                <Shortcut
+                    Id='ApplicationDesktopShortcut'
+                    Name='CrabGrid'
+                    Description='A GUI for the crabgrid library.'
+                    Target='[#exe0]'
+                    WorkingDirectory='Bin'
+                    Icon='ProductICO'/>
+                <RegistryValue
+                    Root='HKCU'
+                    Key='Software\nanashi\crabgrid-gui'
+                    Name='DesktopShortcut'
+                    Type='integer'
+                    Value='1'
+                    KeyPath='yes'/>
+            </Component>
+        </DirectoryRef>
+
+        <DirectoryRef Id='ApplicationProgramsFolder'>
+            <Component Id='ApplicationShortcutMenu' Guid='E8C1236F-A054-4B2E-8E56-427DFF6C0B83'>
+                <Shortcut
+                    Id='ApplicationMenuShortcut'
+                    Name='CrabGrid'
+                    Description='A GUI for the crabgrid library.'
+                    Target='[#exe0]'
+                    WorkingDirectory='Bin'
+                    Icon='ProductICO'/>
+                <RemoveFolder Id='CleanUpProgramsFolder' On='uninstall'/>
+                <RegistryValue
+                    Root='HKCU'
+                    Key='Software\nanashi\crabgrid-gui'
+                    Name='MenuShortcut'
+                    Type='integer'
+                    Value='1'
+                    KeyPath='yes'/>
+            </Component>
+        </DirectoryRef>
+
         <Feature
             Id='Binaries'
             Title='Application'
@@ -143,6 +186,17 @@
             
             <ComponentRef Id='binary0'/>
 
+            <ComponentRef Id='ApplicationShortcutMenu'/>
+
+            <Feature
+                Id='DesktopShortcutFeature'
+                Title='Desktop Shortcut'
+                Description='Create a shortcut on the desktop.'
+                Level='1'
+                Absent='allow'>
+                <ComponentRef Id='ApplicationShortcutDesktop'/>
+            </Feature>
+
             <Feature
                 Id='Environment'
                 Title='PATH Environment Variable'
@@ -157,13 +211,10 @@
 
         
         <!--
-          Uncomment the following `Icon` and `Property` tags to change the product icon.
-
-          The product icon is the graphic that appears in the Add/Remove
-          Programs control panel for the application.
+          Product icon that appears in Add/Remove Programs and shortcuts.
         -->
-        <!--<Icon Id='ProductICO' SourceFile='wix\Product.ico'/>-->
-        <!--<Property Id='ARPPRODUCTICON' Value='ProductICO' />-->
+        <Icon Id='ProductICO' SourceFile='wix\Product.ico'/>
+        <Property Id='ARPPRODUCTICON' Value='ProductICO' />
 
         <Property Id='ARPHELPLINK' Value='https://github.com/nanashi-1/crabgrid-gui'/>
         
