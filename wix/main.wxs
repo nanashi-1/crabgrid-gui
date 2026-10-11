@@ -117,14 +117,13 @@
                                 Action='set'
                                 System='yes'/>
                         </Component>
-                        
                         <Component Id='binary0' Guid='*'>
                             <File
                                 Id='exe0'
                                 Name='crabgrid-gui.exe'
                                 DiskId='1'
                                 Source='$(var.CargoTargetBinDir)\crabgrid-gui.exe'
-                                KeyPath='yes'/>
+                                KeyPath='no'/>
 
                             <!-- Start Menu Shortcut -->
                             <Shortcut
@@ -138,12 +137,14 @@
 
                             <RemoveFolder Id='CleanUpProgramsFolder' Directory='ApplicationProgramsFolder' On='uninstall'/>
                             
+                            <!-- Registry KeyPath required for per-user shortcuts in per-machine install -->
                             <RegistryValue
                                 Root='HKCU'
                                 Key='Software\nanashi\crabgrid-gui'
                                 Name='Installed'
                                 Type='integer'
-                                Value='1'/>
+                                Value='1'
+                                KeyPath='yes'/>
                         </Component>
 
                         <Component Id='ApplicationShortcutDesktop' Guid='9B3E2D87-5D4C-4E7F-99F1-2B7A5D8F0C1E'>
@@ -164,7 +165,7 @@
                                 Type='integer'
                                 Value='1'
                                 KeyPath='yes'/>
-                        </Component>
+                        </Component>                       
                     </Directory>
                 </Directory>
             </Directory>
