@@ -1,0 +1,443 @@
+import { Button, CheckBox, Palette, ScrollView } from "std-widgets.slint";
+import { Card } from "card.slint";
+
+export struct ImageItem {
+    id: int,
+    index: int,
+    name: string,
+    path: string,
+    thumbnail: image,
+    rotation: int,
+    col: int,
+    row: int,
+}
+
+component MiniButton inherits Rectangle {
+    in-out property <string> icon-text;
+    in-out property <bool> enabled: true;
+    callback clicked();
+
+    width: 28px;
+    height: 20px;
+    border-radius: 4px;
+    background: ta.has-hover && root.enabled ? Palette.control-background.darker(0.1) : Palette.alternate-background;
+    border-width: 1px;
+    border-color: ta.pressed && root.enabled ? Palette.accent-background : Palette.border;
+
+    Text {
+        text: root.icon-text;
+        font-size: 10px;
+        color: root.enabled ? Palette.foreground : Palette.foreground.transparentize(0.6);
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    ta := TouchArea {
+        enabled: root.enabled;
+        clicked => { root.clicked(); }
+    }
+}
+
+component ImageCard inherits Rectangle {
+    in-out property <ImageItem> item;
+    in-out property <bool> is-selected;
+    in-out property <int> total-items;
+
+    callback select();
+    callback rotate-cw();
+    callback move-left();
+    callback move-right();
+
+    background: Palette.control-background;
+    border-radius: 6px;
+    border-width: root.is-selected ? 2px : 1px;
+    border-color: root.is-selected ? Palette.accent-background : Palette.border;
+    drop-shadow-blur: 4px;
+    drop-shadow-offset-y: 1px;
+    drop-shadow-color: #00000012;
+
+    VerticalLayout {
+        padding: 5px;
+        spacing: 4px;
+
+        // Top info badges
+        HorizontalLayout {
+            alignment: space-between;
+            height: 16px;
+
+            Rectangle {
+                border-radius: 3px;
+                background: root.is-selected ? Palette.accent-background : #000000aa;
+                min-width: 22px;
+
+                HorizontalLayout {
+                    padding-left: 4px;
+                    padding-right: 4px;
+                    Text {
+                        text: "#" + (root.item.index + 1);
+                        font-size: 10px;
+                        font-weight: 700;
+                        color: #ffffff;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            if root.item.rotation != 0 : Rectangle {
+                border-radius: 3px;
+                background: Palette.accent-background.transparentize(0.2);
+                min-width: 26px;
+
+                HorizontalLayout {
+                    padding-left: 4px;
+                    padding-right: 4px;
+                    Text {
+                        text: root.item.rotation + "°";
+                        font-size: 10px;
+                        font-weight: 600;
+                        color: #ffffff;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+
+        // Image thumbnail
+        Rectangle {
+            vertical-stretch: 1;
+            clip: true;
+            border-radius: 4px;
+            background: Palette.alternate-background;
+
+            Image {
+                source: root.item.thumbnail;
+                width: 100%;
+                height: 100%;
+                image-fit: contain;
+            }
+
+            TouchArea {
+                clicked => { root.select(); }
+            }
+        }
+
+        // Filename
+        Text {
+            text: root.item.name;
+            font-size: 10px;
+            color: Palette.foreground;
+            horizontal-alignment: center;
+            overflow: elide;
+        }
+
+        // Bottom quick action buttons
+        HorizontalLayout {
+            spacing: 4px;
+            alignment: center;
+            height: 22px;
+
+            MiniButton {
+                icon-text: "◀";
+                enabled: root.item.index > 0;
+                clicked => { root.move-left(); }
+            }
+
+            MiniButton {
+                icon-text: "⟳";
+                clicked => { root.rotate-cw(); }
+            }
+
+            MiniButton {
+                icon-text: "▶";
+                enabled: root.item.index < root.total-items - 1;
+                clicked => { root.move-right(); }
+            }
+        }
+    }
+}
+
+export component EditPage inherits VerticalLayout {
+    in-out property <[ImageItem]> images: [];
+    in-out property <int> total-images: 0;
+    in-out property <int> columns: 5;
+    in-out property <int> total-rows: 1;
+    in-out property <int> selected-index: -1;
+    in-out property <string> selected-image-name: "";
+    in-out property <bool> persist-changes: false;
+    in-out property <string> persist-status: "";
+    in-out property <bool> has-multiple-folders: false;
+    in-out property <string> folder-name: "";
+    in-out property <int> folder-index: 0;
+    in-out property <int> total-folders: 1;
+
+    in-out property <length> tile-card-width: 120px;
+    in-out property <length> tile-card-height: 145px;
+    in-out property <length> tile-gap: 8px;
+    in-out property <length> grid-canvas-width: 600px;
+    in-out property <length> grid-canvas-height: 400px;
+
+    callback select-image(int);
+    callback deselect();
+    callback rotate-image(int, int);
+    callback move-image(int, int);
+    callback move-to-start(int);
+    callback move-to-end(int);
+    callback rotate-all(int);
+    callback reset-images();
+    callback persist-changes-now();
+    callback prev-folder();
+    callback next-folder();
+    callback back-to-form();
+    callback start-compiling();
+
+    spacing: 10px;
+
+    // Header & Persistence Settings Card
+    Card {
+        VerticalLayout {
+            padding: 12px;
+            spacing: 8px;
+
+            HorizontalLayout {
+                spacing: 12px;
+                alignment: space-between;
+
+                VerticalLayout {
+                    spacing: 2px;
+                    alignment: center;
+
+                    Text {
+                        text: "Grid Layout & Reorder";
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: Palette.foreground;
+                    }
+
+                    Text {
+                        text: root.total-images + " images | " + root.columns + " cols × " + root.total-rows + " rows";
+                        font-size: 11px;
+                        color: Palette.foreground.transparentize(0.4);
+                    }
+                }
+
+                // Folder switcher if in multi-directory mode
+                if root.has-multiple-folders : HorizontalLayout {
+                    spacing: 6px;
+                    alignment: center;
+
+                    Button {
+                        text: "◀ Prev Folder";
+                        enabled: root.folder-index > 0;
+                        clicked => { root.prev-folder(); }
+                    }
+
+                    VerticalLayout {
+                        alignment: center;
+                        Text {
+                            text: "Folder " + (root.folder-index + 1) + "/" + root.total-folders + ": " + root.folder-name;
+                            font-size: 12px;
+                            font-weight: 600;
+                        }
+                    }
+
+                    Button {
+                        text: "Next Folder ▶";
+                        enabled: root.folder-index < root.total-folders - 1;
+                        clicked => { root.next-folder(); }
+                    }
+                }
+
+                // Persist changes controls
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: end;
+
+                    CheckBox {
+                        text: "Persist changes to original files";
+                        checked <=> root.persist-changes;
+                    }
+
+                    Button {
+                        text: "Save to Files Now";
+                        clicked => { root.persist-changes-now(); }
+                    }
+                }
+            }
+
+            if root.persist-status != "" : Text {
+                text: root.persist-status;
+                font-size: 11px;
+                color: #107c41;
+                font-weight: 500;
+            }
+        }
+    }
+
+    // Controls & Selection Actions Card
+    Card {
+        VerticalLayout {
+            padding: 10px;
+            spacing: 6px;
+
+            if root.selected-index >= 0 : HorizontalLayout {
+                spacing: 8px;
+                alignment: space-between;
+
+                HorizontalLayout {
+                    spacing: 6px;
+                    alignment: start;
+
+                    VerticalLayout {
+                        alignment: center;
+                        Text {
+                            text: "Selected #" + (root.selected-index + 1) + ": " + root.selected-image-name;
+                            font-size: 12px;
+                            font-weight: 600;
+                            color: Palette.accent-background;
+                        }
+                    }
+
+                    Button {
+                        text: "⇤ First";
+                        enabled: root.selected-index > 0;
+                        clicked => { root.move-to-start(root.selected-index); }
+                    }
+                    Button {
+                        text: "◀ Left";
+                        enabled: root.selected-index > 0;
+                        clicked => { root.move-image(root.selected-index, -1); }
+                    }
+                    Button {
+                        text: "Right ▶";
+                        enabled: root.selected-index < root.total-images - 1;
+                        clicked => { root.move-image(root.selected-index, 1); }
+                    }
+                    Button {
+                        text: "End ⇥";
+                        enabled: root.selected-index < root.total-images - 1;
+                        clicked => { root.move-to-end(root.selected-index); }
+                    }
+                    Button {
+                        text: "▲ Up Row";
+                        enabled: root.selected-index >= root.columns;
+                        clicked => { root.move-image(root.selected-index, -root.columns); }
+                    }
+                    Button {
+                        text: "▼ Down Row";
+                        enabled: root.selected-index + root.columns < root.total-images;
+                        clicked => { root.move-image(root.selected-index, root.columns); }
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 6px;
+                    alignment: end;
+
+                    Button {
+                        text: "⟲ -90°";
+                        clicked => { root.rotate-image(root.selected-index, -90); }
+                    }
+                    Button {
+                        text: "⟳ +90°";
+                        clicked => { root.rotate-image(root.selected-index, 90); }
+                    }
+                    Button {
+                        text: "180°";
+                        clicked => { root.rotate-image(root.selected-index, 180); }
+                    }
+                    Button {
+                        text: "Deselect";
+                        clicked => { root.deselect(); }
+                    }
+                }
+            }
+
+            if root.selected-index < 0 : HorizontalLayout {
+                spacing: 12px;
+                alignment: space-between;
+
+                VerticalLayout {
+                    alignment: center;
+                    Text {
+                        text: "Click an image to select it for fine adjustments, or use the quick buttons on each card.";
+                        font-size: 12px;
+                        color: Palette.foreground.transparentize(0.4);
+                        font-italic: true;
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+
+                    Button {
+                        text: "Rotate All ⟳";
+                        clicked => { root.rotate-all(90); }
+                    }
+                    Button {
+                        text: "Reset Order & Rotation";
+                        clicked => { root.reset-images(); }
+                    }
+                }
+            }
+        }
+    }
+
+    // Scrollable Grid Area
+    Card {
+        vertical-stretch: 1;
+
+        ScrollView {
+            width: 100%;
+            height: 100%;
+            content-width: root.grid-canvas-width;
+            content-height: root.grid-canvas-height;
+
+            Rectangle {
+                min-width: root.grid-canvas-width;
+                min-height: root.grid-canvas-height;
+
+                for item[idx] in root.images : ImageCard {
+                    x: item.col * (root.tile-card-width + root.tile-gap) + root.tile-gap;
+                    y: item.row * (root.tile-card-height + root.tile-gap) + root.tile-gap;
+                    width: root.tile-card-width;
+                    height: root.tile-card-height;
+                    item: item;
+                    is-selected: root.selected-index == item.index;
+                    total-items: root.total-images;
+
+                    select => { root.select-image(item.index); }
+                    rotate-cw => { root.rotate-image(item.index, 90); }
+                    move-left => { root.move-image(item.index, -1); }
+                    move-right => { root.move-image(item.index, 1); }
+                }
+            }
+        }
+    }
+
+    // Bottom Action Bar
+    HorizontalLayout {
+        alignment: space-between;
+
+        Button {
+            text: "◀ Back to Settings";
+            clicked => { root.back-to-form(); }
+        }
+
+        VerticalLayout {
+            alignment: center;
+            Text {
+                text: "Collage will use the arrangement above.";
+                font-size: 11px;
+                color: Palette.foreground.transparentize(0.45);
+            }
+        }
+
+        Button {
+            text: "Compile Collage ▶";
+            primary: true;
+            clicked => { root.start-compiling(); }
+        }
+    }
+}

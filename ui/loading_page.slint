@@ -1,0 +1,42 @@
+import { ProgressIndicator, Palette } from "std-widgets.slint";
+import { Card } from "card.slint";
+
+export component LoadingPage inherits VerticalLayout {
+    in-out property <string> loading-text: "Scanning directory and preparing images, please wait...";
+
+    alignment: center;
+    vertical-stretch: 1;
+
+    Card {
+        VerticalLayout {
+            padding: 36px;
+            spacing: 20px;
+            alignment: center;
+
+            VerticalLayout {
+                alignment: center;
+                spacing: 6px;
+
+                Text {
+                    text: "Loading Images...";
+                    font-size: 18px;
+                    font-weight: 600;
+                    horizontal-alignment: center;
+                    color: Palette.foreground;
+                }
+
+                Text {
+                    text: root.loading-text;
+                    font-size: 13px;
+                    horizontal-alignment: center;
+                    color: Palette.foreground.transparentize(0.35);
+                }
+            }
+
+            ProgressIndicator {
+                indeterminate: true;
+                width: 100%;
+            }
+        }
+    }
+}
