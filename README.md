@@ -17,6 +17,19 @@ It allows you to easily stitch a collection of individual images into a single g
 - **Asynchronous Execution**: The compilation runs in the background on a separate thread, keeping the GUI responsive during rendering.
 - **Seamless Explorer Integration**: Conveniently open output destinations directly from the completion screen.
 
+## Screenshots
+
+### Form Page
+![Form Page](screenshots/screenshot_2026-10-11_22-20-53.png)
+
+### Edit Page
+![Edit Page](screenshots/screenshot_2026-10-11_22-21-52.png)
+
+### Other Pages
+![Loading Page](screenshots/screenshot_2026-10-11_22-21-28.png)
+![Compiling Page](screenshots/screenshot_2026-10-11_22-22-12.png)
+![Done Page](screenshots/screenshot_2026-10-11_22-22-23.png)
+
 ## Getting Started
 
 ### Prerequisites
