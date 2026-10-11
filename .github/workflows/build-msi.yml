@@ -10,7 +10,7 @@ on:
         default: 'v0.1.0'
 
 permissions:
-  contents: write  # Grants authorization to upload assets to your release
+  contents: write
 
 jobs:
   build-and-patch-windows:
@@ -29,11 +29,16 @@ jobs:
       - name: Set up Cargo Cache
         uses: swatinem/rust-cache@v2
 
-      - name: Install cargo-wix Binaries
-        run: cargo install cargo-wix --locked
+      - name: Install cargo-binstall
+        # Installs the binstall tool instantly using the official quick script
+        run: |
+          Set-ExecutionPolicy Unrestricted -Scope Process
+          iex (iwr "https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.ps1").Content
+      - name: Install cargo-wix via binstall
+        # Fetches pre-compiled cargo-wix binaries instead of compiling from source
+        run: cargo binstall cargo-wix --strategy quick --yes
 
       - name: Compile MSI Package via Native WiX
-        # windows-latest runners pre-bundle the official WiX Toolset binaries natively in the system path
         run: cargo wix --nocapture --target x86_64-pc-windows-msvc
 
       - name: Upload Patch MSI to Existing GitHub Release
