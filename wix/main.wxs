@@ -214,20 +214,22 @@
         <Icon Id="MyIcon" SourceFile="wix/Product.ico" />
     </Product>
 
-    <DirectoryRef Id="DesktopFolder">
-      <Component Id="ApplicationShortcutDesktop" Guid="305dc292-f9af-4961-9fd1-bf38f5ad08db">
-          <Shortcut Id="ApplicationDesktopShortcut" 
-              Name="CrabGrid" 
-              Description="A GUI for the crabgrid library" 
-              Target="[Bin]crabgrid-gui.exe" 
-              Icon="MyIcon"
-              WorkingDirectory="Bin" />
-          <RegistryValue Root="HKCU"
-              Key="Software\nanashi\crabgrid-gui"
-              Name="installed"
-              Type="integer"
-              Value="1"
-              KeyPath="yes" />
-      </Component>
-    </DirectoryRef>
+    <Fragment>
+      <DirectoryRef Id="DesktopFolder">
+        <Component Id="ApplicationShortcutDesktop" Guid="305dc292-f9af-4961-9fd1-bf38f5ad08db">
+            <Shortcut Id="ApplicationDesktopShortcut" 
+                Name="CrabGrid" 
+                Description="A GUI for the crabgrid library" 
+                Target="[Bin]crabgrid-gui.exe" 
+                Icon="MyIcon"
+                WorkingDirectory="Bin" />
+            <RegistryValue Root="HKCU"
+                Key="Software\nanashi\crabgrid-gui"
+                Name="installed"
+                Type="integer"
+                Value="1"
+                KeyPath="yes" />
+        </Component>
+      </DirectoryRef>
+    </Fragment>
 </Wix>
