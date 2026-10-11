@@ -117,13 +117,14 @@
                                 Action='set'
                                 System='yes'/>
                         </Component>
+
                         <Component Id='binary0' Guid='713cfca2-af0e-414e-ae9a-c5f04e10ec28'>
                             <File
                                 Id='exe0'
                                 Name='crabgrid-gui.exe'
                                 DiskId='1'
                                 Source='$(var.CargoTargetBinDir)\crabgrid-gui.exe'
-                                KeyPath='no'/>
+                                KeyPath='yes'/>
 
                             <!-- Start Menu Shortcut -->
                             <Shortcut
@@ -135,20 +136,7 @@
                                 WorkingDirectory='Bin'
                                 Icon='ProductICO'/>
 
-                            <RemoveFolder Id='CleanUpProgramsFolder' Directory='ApplicationProgramsFolder' On='uninstall'/>
-                            
-                            <!-- Registry KeyPath required for per-user shortcuts in per-machine install -->
-                            <RegistryValue
-                                Root='HKCU'
-                                Key='Software\nanashi\crabgrid-gui'
-                                Name='Installed'
-                                Type='integer'
-                                Value='1'
-                                KeyPath='yes'/>
-                        </Component>
-
-                        <Component Id='ApplicationShortcutDesktop' Guid='9B3E2D87-5D4C-4E7F-99F1-2B7A5D8F0C1E'>
-                            <!-- Desktop Shortcut -->
+                            <!-- Desktop Shortcut (placed in the same component as exe0 to satisfy ICE69) -->
                             <Shortcut
                                 Id='ApplicationDesktopShortcut'
                                 Directory='DesktopFolder'
@@ -158,14 +146,8 @@
                                 WorkingDirectory='Bin'
                                 Icon='ProductICO'/>
 
-                            <RegistryValue
-                                Root='HKCU'
-                                Key='Software\nanashi\crabgrid-gui'
-                                Name='DesktopShortcut'
-                                Type='integer'
-                                Value='1'
-                                KeyPath='yes'/>
-                        </Component>                       
+                            <RemoveFolder Id='CleanUpProgramsFolder' Directory='ApplicationProgramsFolder' On='uninstall'/>
+                        </Component>                        
                     </Directory>
                 </Directory>
             </Directory>
@@ -187,15 +169,6 @@
             <ComponentRef Id='License'/>
             
             <ComponentRef Id='binary0'/>
-
-            <Feature
-                Id='DesktopShortcutFeature'
-                Title='Desktop Shortcut'
-                Description='Create a shortcut on the desktop.'
-                Level='1'
-                Absent='allow'>
-                <ComponentRef Id='ApplicationShortcutDesktop'/>
-            </Feature>
 
             <Feature
                 Id='Environment'
